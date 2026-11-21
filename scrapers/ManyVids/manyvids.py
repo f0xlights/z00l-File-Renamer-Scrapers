@@ -41,7 +41,7 @@ VIDEO_PAGE = "https://www.manyvids.com/Video/{}/"
 
 STUDIO = "ManyVids"
 MAX_RESULTS = 60             # the program shows at most this many results of a search: send the best ones
-CATALOG_MAX_PAGES = 100
+CATALOG_MAX_PAGES = 300       # pages of 70 videos: 21000 videos, far more than any creator has
 CATALOG_TTL = 15 * 60         # a downloaded catalog is reused by the next searches of a batch for this long
 CACHE_DIR = os.path.join(tempfile.gettempdir(), "z00l-manyvids-cache")
 
@@ -251,21 +251,16 @@ def download_catalog(creator_id):
         return cached
 
     def fetch(page):
-        return (get_json(CATALOG_API.format(creator_id), {"sort": "newest", "page": page}, timeout=10) or {}).get("data") or []
+        # limit=70 is the largest page the store API gives (9 without it): a 1800-video creator is 27 requests, not 200
+        return get_json(CATALOG_API.format(creator_id), {"sort": "newest", "page": page, "limit": 70}, timeout=15) or {}
 
-    items, page = [], 1
-    with ThreadPoolExecutor(max_workers=5) as pool:
-        while page <= CATALOG_MAX_PAGES:
-            batch = list(pool.map(fetch, range(page, min(page + 5, CATALOG_MAX_PAGES + 1))))
-            done = False
-            for chunk in batch:
-                if not chunk:
-                    done = True
-                    break
-                items.extend(chunk)
-            if done:
-                break
-            page += 5
+    first = fetch(1)
+    items = list(first.get("data") or [])
+    total_pages = min(int((first.get("pagination") or {}).get("totalPages") or 1), CATALOG_MAX_PAGES)
+    if total_pages > 1:
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            for chunk in pool.map(fetch, range(2, total_pages + 1)):      # (in page order: newest first)
+                items.extend(chunk.get("data") or [])
     if items:
         save_cached_catalog(creator_id, items)
     log(f"catalog of creator {creator_id}: {len(items)} videos")
