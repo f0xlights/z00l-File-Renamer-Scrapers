@@ -39,7 +39,8 @@ AUTOCOMPLETE_API = "https://www.manyvids.com/bff/search/autocomplete"
 CATALOG_API = "https://api.manyvids.com/store/videos/{}"
 VIDEO_PAGE = "https://www.manyvids.com/Video/{}/"
 
-MAX_RESULTS = 60              # the program shows at most this many results of a search: send the best ones
+STUDIO = "ManyVids"
+MAX_RESULTS = 60             # the program shows at most this many results of a search: send the best ones
 CATALOG_MAX_PAGES = 100
 CATALOG_TTL = 15 * 60         # a downloaded catalog is reused by the next searches of a batch for this long
 CACHE_DIR = os.path.join(tempfile.gettempdir(), "z00l-manyvids-cache")
@@ -155,9 +156,10 @@ def to_scene(vid, fallback_artist=""):
         "url": VIDEO_PAGE.format(vid_id),
         "details": unescape(desc),
         "date": iso_date(vid.get("launchDate")),
-        "studio": {"name": name},
+        "studio": {"name": STUDIO},                  # always ManyVids; the creator is the performer
         "performers": [{"name": name, "gender": "FEMALE"}],
         "images": [img] if img else [],
+        "_creator": name,
     }
     if tags:
         scene["tags"] = tags
@@ -355,8 +357,8 @@ def finish(results, query, artist_name, creator_id):
             if sc["_label"] in ("Store-API", "ID"):
                 kept.append(sc)                                    # the store API / an id lookup are always right
                 continue
-            studio = sc["studio"]["name"].lower().replace(" ", "")
-            if studio and (target in studio or studio in target):
+            creator = sc["_creator"].lower().replace(" ", "")
+            if creator and (target in creator or creator in target):
                 kept.append(sc)
         if len(kept) != len(results):
             log(f"removed {len(results) - len(kept)} results from other creators")
@@ -376,6 +378,7 @@ def finish(results, query, artist_name, creator_id):
     out = results[:MAX_RESULTS]
     for sc in out:
         sc.pop("_label", None)
+        sc.pop("_creator", None)
     log(f"{len(out)} of {len(results)} results")
     return out
 
@@ -391,7 +394,11 @@ def details(payload):
     if not vid_id:
         return None
     data = fetch_video(vid_id)
-    return to_scene(data) if data else None
+    if not data:
+        return None
+    scene = to_scene(data)
+    scene.pop("_creator", None)
+    return scene
 
 
 def main():
