@@ -42,13 +42,17 @@ def scraper_name(folder: Path) -> str:
     return folder.name
 
 
-def short_commit() -> str:
+def last_change(folder: Path) -> datetime:
+    """When the package last changed: the date of the last commit that touched its folder (needs the full git
+    history), else the newest file's modification time."""
     try:
-        out = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "--short=8", "HEAD"],
+        out = subprocess.run(["git", "-c", "safe.directory=*", "-C", str(ROOT), "log", "-1", "--format=%cI", "--", str(folder)],
                              capture_output=True, text=True, check=True).stdout.strip()
-        return out or "local"
+        if out:
+            return datetime.fromisoformat(out).astimezone(timezone.utc)
     except Exception:
-        return "local"
+        pass
+    return datetime.fromtimestamp(max(p.stat().st_mtime for p in package_files(folder)), timezone.utc)
 
 
 def main() -> int:
@@ -57,13 +61,15 @@ def main() -> int:
         print("No scrapers found in scrapers/", file=sys.stderr)
         return 1
     DIST.mkdir(exist_ok=True)
-    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
-    version = f"{short_commit()}-{datetime.now(timezone.utc).strftime('%Y%m%d')}"
     lines = []
     for folder in folders:
         zip_path = DIST / f"{folder.name}.zip"
         build_zip(folder, zip_path)
         sha = hashlib.sha256(zip_path.read_bytes()).hexdigest()
+        # The version belongs to the package: it only changes when the package's own files change, so the app
+        # offers an update for that scraper only.
+        version = sha[:8]
+        stamp = last_change(folder).strftime("%Y-%m-%d %H:%M:%S")
         lines += [
             f"- id: {folder.name}",
             f"  name: {scraper_name(folder)}",
