@@ -1,0 +1,75 @@
+name: ThatFetishGirl
+# Scraper for https://thatfetishgirl.com (public "access" catalogue: no login needed).
+#
+# - Search by name:  sceneByName   -> /access/search.php?query=...
+# - Scene page URL:  sceneByURL    -> /access/scenes/<Slug>_vids.html
+# - Completes a search hit from its page (description, tags, ...): sceneByQueryFragment
+#
+# Note: the site shows an age-verification wall to some countries; from those, use a proxy
+# (in z00l-File-Renamer: Settings > Proxy Settings, "scrapers" enabled).
+
+sceneByName:
+  action: scrapeXPath
+  queryURL: https://thatfetishgirl.com/access/search.php?query={}
+  scraper: sceneSearch
+
+sceneByURL:
+  - action: scrapeXPath
+    url:
+      - thatfetishgirl.com/access/scenes/
+    scraper: sceneScraper
+
+sceneByQueryFragment:
+  action: scrapeXPath
+  queryURL: "{url}"
+  scraper: sceneScraper
+
+xPathScrapers:
+  sceneSearch:
+    common:
+      $scene: //div[@class="update_details"]
+    scene:
+      Title: $scene//a[contains(@href,"_vids.html")][2]/text()
+      URL: $scene//a[contains(@href,"_vids.html")][1]/@href
+      Code: $scene/@data-setid
+      Date:
+        selector: $scene//div[contains(@class,"update_date")]
+        postProcess:
+          - parseDate: 01/02/2006
+      Image: $scene//img[contains(@class,"update_thumb")]/@src0_2x
+      Studio:
+        Name:
+          fixed: That Fetish Girl
+      # No Performers here on purpose: in a result list the engine would hand every result the models of the
+      # whole page. They come from the scene page (sceneScraper) when a result is completed.
+
+  sceneScraper:
+    # Everything is read from the direct children of div.gallery_info: the page also lists related updates
+    # (with their own models/dates) further down, nested deeper inside it.
+    common:
+      $info: //div[@class="gallery_info"]
+    scene:
+      Title: //meta[@property="og:title"]/@content
+      URL:
+        fixed: "{inputURL}"
+      Code: //div[@class="rating_box"]/@data-id
+      Details:
+        selector: $info/span[@class="update_description"]
+        postProcess:
+          - replace:
+              - regex: \s+
+                with: " "
+      Date:
+        selector: $info/div[@class="table"]//div[contains(@class,"update_date")]
+        postProcess:
+          - parseDate: 01/02/2006
+      Image: //meta[@property="og:image"]/@content
+      Studio:
+        Name:
+          fixed: That Fetish Girl
+      Performers:
+        Name: $info/span[@class="update_models"]/a/text()
+      Tags:
+        Name: $info/span[@class="update_tags"]/a/text()
+
+# Last Updated November 21, 2026
