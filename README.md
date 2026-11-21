@@ -8,6 +8,7 @@ Scrapers use the [Stash scraper format](https://docs.stashapp.cc/in-app-manual/s
 
 | Scraper | Site | Search by name | Scene URL |
 |---|---|:---:|:---:|
+| [ManyVids](scrapers/ManyVids) | manyvids.com | ✅ | ✅ |
 | [ThatFetishGirl](scrapers/ThatFetishGirl) | thatfetishgirl.com | ✅ | ✅ |
 
 ## Installing scrapers via the Scraper Manager

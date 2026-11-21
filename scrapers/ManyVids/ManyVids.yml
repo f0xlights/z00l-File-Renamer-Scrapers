@@ -1,0 +1,36 @@
+name: ManyVids
+# Scraper for https://www.manyvids.com (uses its public search and store APIs: no login needed).
+#
+# - Search by name: understands "Creator - Title" and "Creator Title" (it finds where the creator name ends),
+#   looks up a video id written in the file name (e.g. 3424528), and downloads the creator's catalogue.
+# - Video page URL: https://www.manyvids.com/Video/<id>/...
+# - Completes a search hit (tags, date, description) from the store API.
+#
+# Needs Python 3.12+ (standard library only; `requests` is used when installed). The program passes its proxy
+# settings to the script.
+
+sceneByName:
+  action: script
+  script:
+    - python
+    - manyvids.py
+    - search
+
+sceneByURL:
+  - action: script
+    url:
+      - manyvids.com/Video/
+      - manyvids.com/video/
+    script:
+      - python
+      - manyvids.py
+      - url
+
+sceneByQueryFragment:
+  action: script
+  script:
+    - python
+    - manyvids.py
+    - details
+
+# Last Updated November 21, 2026
