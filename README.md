@@ -8,6 +8,7 @@ Scrapers use the [Stash scraper format](https://docs.stashapp.cc/in-app-manual/s
 
 | Scraper | Site | Search by name | Scene URL |
 |---|---|:---:|:---:|
+| [Clips4Sale](scrapers/Clips4Sale) | clips4sale.com | ✅ | ✅ |
 | [ManyVids](scrapers/ManyVids) | manyvids.com | ✅ | ✅ |
 | [ThatFetishGirl](scrapers/ThatFetishGirl) | thatfetishgirl.com | ✅ | ✅ |
 
