@@ -1,0 +1,34 @@
+name: Clips4Sale
+# Scraper for https://www.clips4sale.com (its public JSON pages: no login needed).
+#
+# - Search by name: Clips4Sale ignores or fails on some words (banned_words.txt): they are removed from the query.
+# - Clip page URL: https://www.clips4sale.com/studio/<studio id>/<clip id>/<slug>
+# - Completes a search hit (tags, description) from the clip page.
+#
+# Needs Python 3.12+ (standard library only; `requests` is used when installed). It does not need a Stash server.
+# The program passes its proxy settings to the script. Based on the Clips4Sale scraper of the Stash CommunityScrapers.
+
+sceneByName:
+  action: script
+  script:
+    - python
+    - clips4sale.py
+    - search
+
+sceneByURL:
+  - action: script
+    url:
+      - clips4sale.com/studio/
+    script:
+      - python
+      - clips4sale.py
+      - url
+
+sceneByQueryFragment:
+  action: script
+  script:
+    - python
+    - clips4sale.py
+    - details
+
+# Last Updated November 22, 2026
