@@ -164,6 +164,9 @@ def to_scene(clip):
             unique[original.lower()] = original
 
     scene = {"studio": studio}
+    store = clean_text(dig(clip, "studio", "name"))      # search results mark the matched words with <em>: stripped
+    if store:
+        scene["store"] = store             # the seller's store: the template token "Store"
     title = clean_text(clip.get("title"))
     if title:
         scene["title"] = title
