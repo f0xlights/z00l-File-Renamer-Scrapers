@@ -3,6 +3,7 @@ name: Clips4Sale
 #
 # - Search by name: Clips4Sale ignores or fails on some words (banned_words.txt): they are removed from the query.
 # - Clip page URL: https://www.clips4sale.com/studio/<studio id>/<clip id>/<slug>
+# - The studio is always "Clips4Sale" (not the seller's store name).
 # - Completes a search hit (tags, description) from the clip page.
 #
 # Needs Python 3.12+ (standard library only; `requests` is used when installed). It does not need a Stash server.

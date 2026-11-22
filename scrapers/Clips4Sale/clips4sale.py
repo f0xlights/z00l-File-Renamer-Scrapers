@@ -33,6 +33,7 @@ USER_AGENT = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHT
 COOKIES = "iAgreeWithUpdatedTerms=true; contentPreference=%5B0%5D; i18nextLng=en"
 HEADERS = {"User-Agent": USER_AGENT, "Cookie": COOKIES}
 MAX_RESULTS = 60
+STUDIO = "Clips4Sale"
 
 
 def log(message):
@@ -148,7 +149,7 @@ def fetch_json(url):
 # Clip -> scene
 # --------------------------------------------------------------------------- #
 def to_scene(clip):
-    studio = {"name": dig(clip, "studio", "name")}
+    studio = {"name": STUDIO}          # the seller's own store name is not the studio: files are named [Clips4Sale]
     performers = [{"name": name} for name in (dig(p, "stage_name") for p in clip.get("performers") or []) if name]
 
     names = [clip.get("category_name")]
